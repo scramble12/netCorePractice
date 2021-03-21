@@ -1,0 +1,73 @@
+﻿
+
+.betTypeButton {
+    font-size: 12px;
+    color: #aab5bd;
+    background-color: #273b46;
+    width: 25%;
+}
+
+.betTypeButtonSelected {
+    font-weight: bolder;
+    color: white;
+    background-color: red;
+}
+
+thead {
+    background-color: darkslategray;
+}
+
+table, th, td {
+    border: 1px solid black;
+}
+
+
+.bettingButton {
+    width: 85px;
+}
+
+span{
+    padding-left: 20px;
+    color: white;
+}
+
+tr[name^='tr no'] {
+    display:none;
+}
+
+.navButton {
+
+    cursor: pointer;
+    position: absolute;
+    right: 0%;
+    padding: 12px 16px;
+    transform: translate(0%, -50%);
+
+}
+
+.sidenav {
+    height: 60%; /* 100% Full-height */
+    width: 0; /* 0 width - change this with JavaScript */
+    position: fixed; /* Stay in place */
+
+    top: 0; /* Stay at the top */
+    right: 0;
+    background-color: #2d373e; /* Black*/
+    overflow-x: hidden; /* Disable horizontal scroll */
+    padding-top: 0; /* Place content 60px from the top */
+    transition: 0.5s; /* 0.5 second transition effect to slide in the sidenav */
+}
+
+    .sidenav button {
+    background-color: Transparent;
+    color: red;
+    background-repeat: no-repeat;
+    border: none;
+    cursor: pointer;
+    overflow: hidden;
+    outline: none;
+    }
+
+.listic {
+    background-color: white;
+}

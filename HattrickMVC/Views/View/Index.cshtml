@@ -1,0 +1,235 @@
+﻿@model HattrickMVC.Models.ViewModel
+<link rel="stylesheet" href="~/css/ViewModel.css" />
+
+<script>
+    function showMore(gameId) {
+        var changeText = document.getElementById("showMore " + gameId);
+        var elementToShow = document.getElementsByName("tr no" + gameId);
+        if (changeText.getAttribute("value").includes("ore")) {
+            changeText.setAttribute("value", "show less");
+            for (let i = 0; i < elementToShow.length; i++) {
+                elementToShow.item(i).style.display = "table-row";
+            }
+
+        }
+        else {
+            changeText.setAttribute("value", "show more");
+            for (let i = 0; i < elementToShow.length; i++) {
+                elementToShow.item(i).style.display = "none";
+            }
+
+        }
+    }
+
+    function openNav(gameId, ekipe, tipOklade, koef, oklada) {
+        document.getElementById("mySidenav").style.width = "300px";
+        addToTiket(gameId, ekipe, tipOklade, koef, oklada);
+    }
+
+    function deleteAll() {
+        var elements = document.getElementById("sviParovi");
+        while (elements.children.length != 0) {
+            elements.removeChild(elements.firstChild);
+        }
+        getKoef();
+    }
+
+    function remove(gameId) {
+        var cartItems = document.getElementById("parovi" + gameId);
+        cartItems.parentNode.removeChild(cartItems);
+        getKoef();
+
+    }
+
+    function addToTiket(gameId, ekipe, tipOklade, koef, oklada) {
+        var cartItems = document.getElementsByClassName("parovi").item(0);
+        document.contains(document.getElementById("parovi" + gameId)) ? remove(gameId) : null;
+
+        var cartRow = document.createElement('tbody');
+        cartRow.setAttribute("id", "parovi" + gameId);
+        cartRow.setAttribute("style", "outline: 1px solid #000;");
+
+        var content = `
+            <tr>
+            <td colspan="2" name="gameId">
+                ${ekipe}
+<button style="position:absolute;right:0;" onclick="remove(${gameId})">del</button>
+            </td>
+
+            </tr>
+            <tr>
+            <td>${tipOklade}</td>
+            <td>${oklada}</td>
+            <td name="koefPlace">${koef}</td>
+
+            </tr>
+
+`;
+        cartRow.innerHTML = content;
+        cartItems.append(cartRow);
+       getKoef();
+    }
+
+    function getKoef() {
+        var elements = document.getElementsByName("koefPlace");
+        var ukupniKoef = 0;
+        for (let i = 0; i < elements.length; i++) {
+            ukupniKoef = +ukupniKoef + +elements.item(i).innerHTML;
+        }
+        document.getElementById("ukupni koef").innerHTML = "Ukupni koeficijent " + ukupniKoef.toFixed(2);
+        document.getElementById("ukupna dobit").innerHTML = "Moguca dobit  " + (ukupniKoef.toFixed(2) * document.getElementById("ulog").getAttribute("value")).toFixed(2);
+
+    }
+
+    function promjenaUloga() {
+        document.getElementById("ukupna dobit").innerHTML = "Moguca dobit  " + (document.getElementById("ulog").value * document.getElementById("ukupni koef").innerHTML.toString().split(" ")[2]).toFixed(2);
+    }
+
+    function uplati() {
+        let ulog = document.getElementById("ulog").value;
+        $.ajax({
+            url: '@Url.Action("Uplata", "View")',
+            type: 'POST',
+            data: { ulog: ulog },
+        }).done(function (success) {
+            if (success) {
+                document.getElementById("Stanje").innerHTML = "Stanje: " + (+document.getElementById("Stanje").innerHTML.replace("Stanje: ", "") -ulog);
+                alert("uplaceno");
+            } else {
+                alert("failed");
+            }
+
+        });
+    }
+
+    function dodaj() {
+        let ulog = document.getElementById("uneseno").value;
+        console.log(ulog);
+        $.ajax({
+            url: '@Url.Action("Dodaj", "View")',
+            type: 'POST',
+            data: { ulog: ulog },
+        }).done(function (success) {
+            if (success) {
+                document.getElementById("Stanje").innerHTML = "Stanje: " + (+document.getElementById("Stanje").innerHTML.replace("Stanje: ", "") + +ulog);
+                alert("uplaceno");
+            } else {
+                alert("failed");
+            }
+
+        });
+    }
+
+</script>
+
+<body>
+
+    <div id="mySidenav" class="sidenav">
+        <p id="Stanje" style="color:white">Stanje: @Model.User.First().novcanik</p>
+        <label for="uneseno">Dodaj</label>
+        <input type="number" id="uneseno">
+        <button id="dodaj" onclick="dodaj()">unesi</button>
+
+
+        <div><button style=" margin: 0 auto; display: block;" onclick="deleteAll()">Obriši sve x</button></div>
+        
+        <div style="text-align:center; color:white">Odabrano</div>
+        <div class="listic">
+            <table class="parovi" style="width:100%" id="sviParovi"></table>
+            <label for="ulog">Ulog</label>
+            <input type="text" id="ulog" onchange="promjenaUloga()" value="10" />
+            <br />
+            <p id="ukupni koef"></p>
+            <p id="ukupna dobit"></p>
+            <input type="button" onclick="uplati()" value="uplati">
+        </div>
+    </div>
+
+    @foreach (Nogomet nogomet in Model.Nogomet)
+    {
+        <div>
+            <table style="width:100%">
+                <thead>
+                    @printStuff(nogomet.GameId, "Osnovno", true)
+                </thead>
+                <tbody>
+
+                    @addBets(@nogomet.GameId, "Osnovno", true)
+
+
+                    @foreach (var otherType in Model.AvailableBetTypes.Where(betType => betType.GameId == nogomet.GameId & String.Compare(betType.AvialableBet, "Osnovno", true) != 0))
+                    {
+                        printStuff(nogomet.GameId, otherType.AvialableBet, false);
+                    }
+
+                </tbody>
+
+            </table>
+
+            <br /><br />
+
+        </div>
+
+
+    }
+
+</body>
+@functions{
+    public Object printStuff(int wantedId, String selectedBetType, bool show)
+    {
+        var willShow = show ? "show" + wantedId : "no" + wantedId;
+        var colspan = show ? 2 : 1;
+        <tr name="tr @willShow" style="background-color:white;">
+            <td colspan="2">@Model.Nogomet.Where(id => id.GameId == wantedId).First().EkipaDomacin - @Model.Nogomet.Where(id => id.GameId == wantedId).First().EkipaGost</td>
+        <tr name="tr @willShow">
+
+            <td colspan="@colspan">
+
+
+                @foreach (var possibleTip in @Model.AvailableBetTypes.Where(betType => betType.GameId == wantedId & String.Compare(betType.AvialableBet, selectedBetType, true) == 0))
+                {
+                    if (show)
+                    {
+                        <input type="button" disabled id="@possibleTip.id" class="betTypeButton" name="@possibleTip.GameId" value="@possibleTip.AvialableBet">
+                    }
+                    else
+                    {
+                        @possibleTip.AvialableBet
+                    }
+                    if (String.Compare(possibleTip.AvialableBet, "Osnovno", true) == 0)
+                    {
+                        <input type="button" onclick="showMore(@possibleTip.GameId)" style="margin-left:10em" class="showMore" name="showMore" id="showMore @possibleTip.GameId" value="show More + @Model.AvailableBetTypes.Where(betType => betType.GameId == wantedId & String.Compare(betType.AvialableBet, "Osnovno", true) != 0).Count()" />
+                    }
+                    if (!show)
+                    {
+                        addBets(wantedId, selectedBetType, false);
+                    }
+                }
+            </td>
+        </tr>
+        </tr>
+
+
+        return null;
+    }
+
+    public Object addBets(int wantedId, String BetType, bool show)
+    {
+        var ekipe = @Model.Nogomet.Where(gameId => gameId.GameId == wantedId).First().EkipaDomacin +" - "+ @Model.Nogomet.Where(gameId => gameId.GameId == wantedId).First().EkipaGost;
+        var willShow = show ? "no" + wantedId : "show" + wantedId;
+        if (show)
+        {
+            <td>Utakmica @wantedId</td>
+        }
+        <td style="width:50%" id="td @willShow">
+            @foreach (var possibleTip in @Model.PossibleTips.Where(betType => betType.GameId == wantedId & String.Compare(betType.BetType, BetType, true) == 0))
+            {
+
+                <input type="button" onclick="openNav(@wantedId, '@ekipe', '@possibleTip.BetType', @possibleTip.Multiplier, '@possibleTip.PossibleBet')" class="clickedBet" value="@possibleTip.PossibleBet @possibleTip.Multiplier" />
+            }
+
+
+        </td>
+        return null;
+    }
+}
